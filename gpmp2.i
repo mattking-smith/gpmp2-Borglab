@@ -460,6 +460,16 @@ virtual class GaussianPriorWorkspacePoseArm : gtsam::NoiseModelFactor {
 // dynamics
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <gpmp2/dynamics/BiasOmegaFactor.h>
+// template<gtsam::Vector, gtsam::Vector, gtsam::Vector, gtsam::Vector>
+class BiasOmegaFactor : gtsam::NoiseModelFactor {
+  BiasOmegaFactor(size_t key1, size_t key2, double omega_z, double cost_sigma);
+  // Vector evaluateError(Vector pose) const;
+  Vector evaluateError(const gtsam::imuBias::ConstantBias& bias, const Vector& vel);
+  // enabling serialization functionality
+  void serialize() const;
+};
+
 // dynamics factor Pose2
 #include <gpmp2/dynamics/VehicleDynamicsFactorPose2.h>
 
