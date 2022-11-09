@@ -138,6 +138,16 @@ class GaussianProcessInterpolatorLinear {
 // kinematics
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <gpmp2/kinematics/SE3PlanarFactorPose3nPose2.h>
+// template<gtsam::Vector, gtsam::Vector, gtsam::Vector, gtsam::Vector>
+class SE3PlanarFactorPose3nPose2 : gtsam::NoiseModelFactor {
+  SE3PlanarFactorPose3nPose2(size_t key1, size_t key2, double cost_sigma);
+  // Vector evaluateError(Vector pose) const;
+  Vector evaluateError(const Pose3& pose1, const Pose2& pose2);
+  // enabling serialization functionality
+  void serialize() const;
+};
+
 // abstract arm class use DH params
 #include <gpmp2/kinematics/Arm.h>
 
@@ -449,13 +459,6 @@ virtual class GaussianPriorWorkspacePoseArm : gtsam::NoiseModelFactor {
 ////////////////////////////////////////////////////////////////////////////////
 // dynamics
 ////////////////////////////////////////////////////////////////////////////////
-
-// dynamics factor Pose2
-#include <gpmp2/dynamics/SE3PlanarFactorPose3nPose2.h>
-
-virtual class SE3PlanarFactorPose3nPose2 : gtsam::NoiseModelFactor {
-  SE3PlanarFactorPose3nPose2(size_t pose3Key, size_t pose2Key, double cost_sigma);
-};
 
 // dynamics factor Pose2
 #include <gpmp2/dynamics/VehicleDynamicsFactorPose2.h>
