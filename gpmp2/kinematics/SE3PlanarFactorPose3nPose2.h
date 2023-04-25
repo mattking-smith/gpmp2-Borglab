@@ -30,7 +30,7 @@ private:
 
 public:
   /// shorthand for a smart pointer to a factor
-  typedef boost::shared_ptr<This> shared_ptr;
+  typedef std::shared_ptr<This> shared_ptr;
 
   /* Default constructor */
   SE3PlanarFactorPose3nPose2() {}
@@ -50,8 +50,8 @@ public:
   /// numerical/analytic Jacobians from cost function
   gtsam::Vector
   evaluateError(const gtsam::Pose3 &pose3D, const gtsam::Pose2 &pose2D,
-                boost::optional<gtsam::Matrix &> H1 = boost::none,
-                boost::optional<gtsam::Matrix &> H2 = boost::none) const {
+                gtsam::OptionalMatrixType H1 = nullptr,
+                gtsam::OptionalMatrixType H2 = nullptr) const {
     using namespace gtsam;
     const Rot2& R1 = pose2D.rotation();
     double c_psi = cos(pose3D.rotation().yaw());
@@ -89,7 +89,7 @@ public:
 
   /// @return a deep copy of this factor
   virtual gtsam::NonlinearFactor::shared_ptr clone() const {
-    return boost::static_pointer_cast<gtsam::NonlinearFactor>(
+    return std::static_pointer_cast<gtsam::NonlinearFactor>(
         gtsam::NonlinearFactor::shared_ptr(new This(*this)));
   }
 
@@ -101,6 +101,8 @@ public:
     Base::print("", keyFormatter);
   }
 
+private:
+#ifdef GPMP2_ENABLE_BOOST_SERIALIZATION
   /** Serialization function */
   friend class boost::serialization::access;
   template <class ARCHIVE>
@@ -108,6 +110,8 @@ public:
     ar &boost::serialization::make_nvp(
         "NoiseModelFactor2", boost::serialization::base_object<Base>(*this));
   }
+#endif
+
 };
 
 } // namespace gpmp2

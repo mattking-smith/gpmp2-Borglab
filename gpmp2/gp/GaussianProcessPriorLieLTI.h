@@ -13,8 +13,6 @@
 #include <gtsam/geometry/concepts.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/serialization/export.hpp>
 #include <ostream>
 
 namespace gpmp2 {
@@ -27,7 +25,7 @@ class GaussianProcessPriorLieLTI
     : public gtsam::NoiseModelFactor5<T, gtsam::Vector, T, gtsam::Vector,
                                       gtsam::Vector> {
 private:
-  BOOST_CONCEPT_ASSERT((gtsam::IsLieGroup<T>));
+  GTSAM_CONCEPT_ASSERT((gtsam::IsLieGroup<T>));
   typedef GaussianProcessPriorLieLTI<T> This;
   typedef gtsam::NoiseModelFactor5<T, gtsam::Vector, T, gtsam::Vector,
                                    gtsam::Vector>
@@ -55,19 +53,19 @@ public:
 
   /// @return a deep copy of this factor
   virtual gtsam::NonlinearFactor::shared_ptr clone() const {
-    return boost::static_pointer_cast<gtsam::NonlinearFactor>(
+    return std::static_pointer_cast<gtsam::NonlinearFactor>(
         gtsam::NonlinearFactor::shared_ptr(new This(*this)));
   }
 
   /// factor error function
-  gtsam::Vector
-  evaluateError(const T &pose1, const gtsam::Vector &vel1, const T &pose2,
-                const gtsam::Vector &vel2, const gtsam::Vector &control,
-                boost::optional<gtsam::Matrix &> H1 = boost::none,
-                boost::optional<gtsam::Matrix &> H2 = boost::none,
-                boost::optional<gtsam::Matrix &> H3 = boost::none,
-                boost::optional<gtsam::Matrix &> H4 = boost::none,
-                boost::optional<gtsam::Matrix &> H5 = boost::none) const {
+  gtsam::Vector evaluateError(const T &pose1, const gtsam::Vector &vel1,
+                              const T &pose2, const gtsam::Vector &vel2,
+                              const gtsam::Vector &control,
+                              gtsam::OptionalMatrixType H1 = nullptr,
+                              gtsam::OptionalMatrixType H2 = nullptr,
+                              gtsam::OptionalMatrixType H3 = nullptr,
+                              gtsam::OptionalMatrixType H4 = nullptr,
+                              gtsam::OptionalMatrixType H5 = nullptr) const {
     using namespace gtsam;
 
     // Control matrix
@@ -95,9 +93,9 @@ public:
         (gtsam::Matrix(2 * dof_, dof_) << gtsam::Matrix::Identity(dof_, dof_),
          gtsam::Matrix::Identity(dof_, dof_))
             .finished();
-    J(0, 0) = (delta_t_*delta_t_) / (2.0 * m);
-    J(1, 1) = (delta_t_*delta_t_) / (2.0 * m);
-    J(2, 2) = (delta_t_*delta_t_) / (2.0 * Izz);
+    J(0, 0) = (delta_t_ * delta_t_) / (2.0 * m);
+    J(1, 1) = (delta_t_ * delta_t_) / (2.0 * m);
+    J(2, 2) = (delta_t_ * delta_t_) / (2.0 * Izz);
     J(3, 0) = delta_t_ / m;
     J(4, 1) = delta_t_ / m;
     J(5, 2) = delta_t_ / Izz;
@@ -136,11 +134,10 @@ public:
         (gtsam::Vector(2 * dof_) << (r - vel1 * delta_t_), (vel2 - vel1))
             .finished();
 
-
     return x2_m_x1 - calcPhi(dof_, delta_t_) *
                          (gtsam::Matrix::Identity(2 * dof_, 2 * dof_) -
                           0.5 * delta_t_ * A) *
-                         B *delta_t_ *control;
+                         B * delta_t_ * control;
   }
 
   /** number of variables attached to this factor */
@@ -158,12 +155,13 @@ public:
   void print(const std::string &s = "",
              const gtsam::KeyFormatter &keyFormatter =
                  gtsam::DefaultKeyFormatter) const {
-    std::cout << s << "5-way Gaussian Process Factor on Lie with control<" << dof_ << ">"
-              << std::endl;
+    std::cout << s << "5-way Gaussian Process Factor on Lie with control<"
+              << dof_ << ">" << std::endl;
     Base::print("", keyFormatter);
   }
 
 private:
+#ifdef GPMP2_ENABLE_BOOST_SERIALIZATION
   /** Serialization function */
   friend class boost::serialization::access;
   template <class ARCHIVE>
@@ -172,6 +170,7 @@ private:
     ar &BOOST_SERIALIZATION_NVP(dof_);
     ar &BOOST_SERIALIZATION_NVP(delta_t_);
   }
+#endif
 
 }; // GaussianProcessPriorLie
 

@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <boost/lexical_cast.hpp>
 #include <gpmp2/gp/GPutils.h>
 #include <gtsam/base/Testable.h>
 #include <gtsam/geometry/Pose2.h>
@@ -16,7 +15,7 @@
 namespace gpmp2 {
 
 /*
- * 5-way factor for Gaussian Process prior factor, linear version
+ * 5-way factor for Gaussian Process prior factor, Pose2 version
  */
 class GPPriorLTI
     : public gtsam::NoiseModelFactor5<gtsam::Pose2, gtsam::Vector, gtsam::Pose2,
@@ -47,7 +46,7 @@ public:
 
   /// @return a deep copy of this factor
   virtual gtsam::NonlinearFactor::shared_ptr clone() const {
-    return boost::static_pointer_cast<gtsam::NonlinearFactor>(
+    return std::static_pointer_cast<gtsam::NonlinearFactor>(
         gtsam::NonlinearFactor::shared_ptr(new This(*this)));
   }
 
@@ -56,11 +55,11 @@ public:
   evaluateError(const gtsam::Pose2 &pose1, const gtsam::Vector &vel1,
                 const gtsam::Pose2 &pose2, const gtsam::Vector &vel2,
                 const gtsam::Vector &con,
-                boost::optional<gtsam::Matrix &> H1 = boost::none,
-                boost::optional<gtsam::Matrix &> H2 = boost::none,
-                boost::optional<gtsam::Matrix &> H3 = boost::none,
-                boost::optional<gtsam::Matrix &> H4 = boost::none,
-                boost::optional<gtsam::Matrix &> H5 = boost::none) const {
+                gtsam::OptionalMatrixType H1 = nullptr,
+                gtsam::OptionalMatrixType H2 = nullptr,
+                gtsam::OptionalMatrixType H3 = nullptr,
+                gtsam::OptionalMatrixType H4 = nullptr,
+                gtsam::OptionalMatrixType H5 = nullptr) const {
     // using namespace gtsam;
 
     const gtsam::Rot2& R1 = pose1.rotation();
@@ -175,6 +174,7 @@ public:
   }
 
 private:
+#ifdef GPMP2_ENABLE_BOOST_SERIALIZATION
   /** Serialization function */
   friend class boost::serialization::access;
   template <class ARCHIVE>
@@ -183,6 +183,8 @@ private:
     ar &BOOST_SERIALIZATION_NVP(dof_);
     ar &BOOST_SERIALIZATION_NVP(delta_t_);
   }
+#endif
+
 };
 
 } // namespace gpmp2

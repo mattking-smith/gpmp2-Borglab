@@ -4,7 +4,7 @@
  **/
 
 #include <CppUnitLite/TestHarness.h>
-#include <gpmp2/gp/GPPriorLTI.h>
+#include <gpmp2/dynamics/GPPriorLTI.h>
 #include <gtsam/base/Matrix.h>
 #include <gtsam/base/Testable.h>
 #include <gtsam/base/numericalDerivative.h>
@@ -42,44 +42,44 @@ TEST(GPPriorLTI, Factor) {
   v1 = (Vector3() << 0, 0, 0).finished();
 
   /*delta_t = 0.01 */
-//   p2 = Pose2(-0.0999998780487805, 1.20000036585366, 0.300008771929825);
-//   v2 = (Vector3() << 2.4390243902439e-05, 7.31707317073171e-05,
-//         0.00175438596491228)
-//            .finished();
+  //   p2 = Pose2(-0.0999998780487805, 1.20000036585366, 0.300008771929825);
+  //   v2 = (Vector3() << 2.4390243902439e-05, 7.31707317073171e-05,
+  //         0.00175438596491228)
+  //            .finished();
   /*delta_t = 0.05 */
   p2 = Pose2(-0.0996951219512195, 1.20091463414634, 0.321929824561404);
-  v2 = (Vector3() << 0.00121951219512195, 0.00365853658536585, 0.087719298245614)
-           .finished();
+  v2 =
+      (Vector3() << 0.00121951219512195, 0.00365853658536585, 0.087719298245614)
+          .finished();
 
   c1 = (Vector3() << 1, 3, 5).finished();
   expect = (Vector(6) << 0, 0, 0, 0, 0, 0).finished();
-  actual = factor.evaluateError(p1, v1, p2, v2, c1, actualH1, actualH2,
-                                actualH3, actualH4, actualH5);
+  actual = factor.evaluateError(p1, v1, p2, v2, c1, &actualH1, &actualH2,
+                                &actualH3, &actualH4, &actualH5);
   expectH1 = numericalDerivative11(
       std::function<Vector(const Pose2 &)>(std::bind(
           &GPPriorLTI::evaluateError, factor, std::placeholders::_1, v1, p2, v2,
-          c1, boost::none, boost::none, boost::none, boost::none, boost::none)),
+          c1, nullptr, nullptr, nullptr, nullptr, nullptr)),
       p1, 1e-6);
   expectH2 = numericalDerivative11(
       std::function<Vector(const Vector3 &)>(std::bind(
           &GPPriorLTI::evaluateError, factor, p1, std::placeholders::_1, p2, v2,
-          c1, boost::none, boost::none, boost::none, boost::none, boost::none)),
+          c1, nullptr, nullptr, nullptr, nullptr, nullptr)),
       v1, 1e-6);
   expectH3 = numericalDerivative11(
       std::function<Vector(const Pose2 &)>(std::bind(
           &GPPriorLTI::evaluateError, factor, p1, v1, std::placeholders::_1, v2,
-          c1, boost::none, boost::none, boost::none, boost::none, boost::none)),
+          c1, nullptr, nullptr, nullptr, nullptr, nullptr)),
       p2, 1e-6);
   expectH4 = numericalDerivative11(
       std::function<Vector(const Vector3 &)>(std::bind(
           &GPPriorLTI::evaluateError, factor, p1, v1, p2, std::placeholders::_1,
-          c1, boost::none, boost::none, boost::none, boost::none, boost::none)),
+          c1, nullptr, nullptr, nullptr, nullptr, nullptr)),
       v2, 1e-6);
   expectH5 = numericalDerivative11(
-      std::function<Vector(const Vector3 &)>(
-          std::bind(&GPPriorLTI::evaluateError, factor, p1, v1, p2, v2,
-                    std::placeholders::_1, boost::none, boost::none,
-                    boost::none, boost::none, boost::none)),
+      std::function<Vector(const Vector3 &)>(std::bind(
+          &GPPriorLTI::evaluateError, factor, p1, v1, p2, v2,
+          std::placeholders::_1, nullptr, nullptr, nullptr, nullptr, nullptr)),
       c1, 1e-6);
   EXPECT(assert_equal(expect, actual, 1e-6));
   EXPECT(assert_equal(expectH1, actualH1, 1e-6));
@@ -88,8 +88,6 @@ TEST(GPPriorLTI, Factor) {
   EXPECT(assert_equal(expectH4, actualH4, 1e-6));
   EXPECT(assert_equal(expectH5, actualH5, 1e-6));
 }
-
-
 
 /* ************************************************************************** */
 // TEST(GaussianProcessPriorPose2, Optimization) {

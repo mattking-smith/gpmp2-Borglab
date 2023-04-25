@@ -1,5 +1,5 @@
 /**
- *  @file testSE3PlanarFactorPose3nPose2.cpp
+ *  @file testBiasOmegaFactor.cpp
  *  @author Matt King-Smith
  **/
 
@@ -33,14 +33,14 @@ TEST(BiasOmegaFactor, Factor) {
   Vector actual, expect;
   
   expect = (Vector(1) << omega_z - vel(2) - 0.2).finished();
-  actual = factor.evaluateError(bias, vel, actualH1, actualH2);
+  actual = factor.evaluateError(bias, vel, &actualH1, &actualH2);
   expectH1 = numericalDerivative11(
       std::function<Vector(const imuBias::ConstantBias &)>(std::bind(
-          &BiasOmegaFactor::evaluateError, factor, std::placeholders::_1, vel, boost::none, boost::none)),
+          &BiasOmegaFactor::evaluateError, factor, std::placeholders::_1, vel, nullptr, nullptr)),
       bias, 1e-6);
   expectH2 = numericalDerivative11(
       std::function<Vector(const Vector3 &)>(std::bind(
-          &BiasOmegaFactor::evaluateError, factor, bias, std::placeholders::_1, boost::none, boost::none)),
+          &BiasOmegaFactor::evaluateError, factor, bias, std::placeholders::_1, nullptr, nullptr)),
       vel, 1e-6);
   
   EXPECT(assert_equal(expect, actual, 1e-6));

@@ -26,10 +26,11 @@ TEST(GaussianProcessPriorLieLTIPose2, Factor) {
   Matrix Qc = 0.01 * Matrix::Identity(3, 3);
   noiseModel::Gaussian::shared_ptr Qc_model =
       noiseModel::Gaussian::Covariance(Qc);
-  Key key_pose1 = Symbol('x', 1), key_control = Symbol('u',1), key_pose2 = Symbol('x', 2);
+  Key key_pose1 = Symbol('x', 1), key_control = Symbol('u', 1),
+      key_pose2 = Symbol('x', 2);
   Key key_vel1 = Symbol('v', 1), key_vel2 = Symbol('v', 2);
-  GaussianProcessPriorLieLTIPose2 factor(key_pose1, key_vel1, key_pose2, key_vel2, key_control,
-                                   delta_t, Qc_model);
+  GaussianProcessPriorLieLTIPose2 factor(
+      key_pose1, key_vel1, key_pose2, key_vel2, key_control, delta_t, Qc_model);
   Pose2 p1, p2;
   Vector3 v1, v2, c1;
   Matrix actualH1, actualH2, actualH3, actualH4, actualH5;
@@ -38,46 +39,48 @@ TEST(GaussianProcessPriorLieLTIPose2, Factor) {
 
   // some random stuff just for testing jacobian (error is not zero)
   p1 = Pose2(-0.1, 1.2, 0.3);
-  //p2 = Pose2(-0.0999998780487805, 1.20000036585366, 0.300008771929825);
+  // p2 = Pose2(-0.0999998780487805, 1.20000036585366, 0.300008771929825);
   v1 = (Vector3() << 0, 0, 0).finished();
-  //v2 = (Vector3() << 2.4390243902439e-05, 7.31707317073171e-05, 0.00175438596491228).finished();
+  // v2 = (Vector3() << 2.4390243902439e-05, 7.31707317073171e-05,
+  // 0.00175438596491228).finished();
   p2 = Pose2(-0.0996951219512195, 1.20091463414634, 0.321929824561404);
-  v2 = (Vector3() << 0.00121951219512195, 0.00365853658536585, 0.087719298245614)
-           .finished();
+  v2 =
+      (Vector3() << 0.00121951219512195, 0.00365853658536585, 0.087719298245614)
+          .finished();
   c1 = (Vector3() << 1, 3, 5).finished();
   expect = (Vector(6) << 0, 0, 0, 0, 0, 0).finished();
-  actual = factor.evaluateError(p1, v1, p2, v2, c1, actualH1, actualH2, actualH3,
-                                actualH4, actualH5);
-  expectH1 = numericalDerivative11(
-      std::function<Vector(const Pose2&)>(
-          std::bind(&GaussianProcessPriorLieLTIPose2::evaluateError, factor,
-                    std::placeholders::_1, v1, p2, v2, c1, boost::none, boost::none, boost::none,
-                    boost::none, boost::none)),
-      p1, 1e-6);
-  expectH2 = numericalDerivative11(
-      std::function<Vector(const Vector3&)>(
-          std::bind(&GaussianProcessPriorLieLTIPose2::evaluateError, factor, p1,
-                    std::placeholders::_1, p2, v2, c1, boost::none, boost::none, boost::none,
-                    boost::none, boost::none)),
-      v1, 1e-6);
-  expectH3 = numericalDerivative11(
-      std::function<Vector(const Pose2&)>(
-          std::bind(&GaussianProcessPriorLieLTIPose2::evaluateError, factor, p1, v1,
-                    std::placeholders::_1, v2, c1, boost::none, boost::none, boost::none,
-                    boost::none, boost::none)),
-      p2, 1e-6);
-  expectH4 = numericalDerivative11(
-      std::function<Vector(const Vector3&)>(
-          std::bind(&GaussianProcessPriorLieLTIPose2::evaluateError, factor, p1, v1,
-                    p2, std::placeholders::_1, c1, boost::none, boost::none, boost::none,
-                    boost::none, boost::none)),
-      v2, 1e-6);
-  expectH5 = numericalDerivative11(
-      std::function<Vector(const Vector3&)>(
-          std::bind(&GaussianProcessPriorLieLTIPose2::evaluateError, factor, p1, v1,
-                    p2, v2, std::placeholders::_1, boost::none, boost::none, boost::none,
-                    boost::none, boost::none)),
-      c1, 1e-6);
+  actual = factor.evaluateError(p1, v1, p2, v2, c1, &actualH1, &actualH2,
+                                &actualH3, &actualH4, &actualH5);
+  expectH1 =
+      numericalDerivative11(std::function<Vector(const Pose2 &)>(std::bind(
+                                &GaussianProcessPriorLieLTIPose2::evaluateError,
+                                factor, std::placeholders::_1, v1, p2, v2, c1,
+                                nullptr, nullptr, nullptr, nullptr, nullptr)),
+                            p1, 1e-6);
+  expectH2 =
+      numericalDerivative11(std::function<Vector(const Vector3 &)>(std::bind(
+                                &GaussianProcessPriorLieLTIPose2::evaluateError,
+                                factor, p1, std::placeholders::_1, p2, v2, c1,
+                                nullptr, nullptr, nullptr, nullptr, nullptr)),
+                            v1, 1e-6);
+  expectH3 =
+      numericalDerivative11(std::function<Vector(const Pose2 &)>(std::bind(
+                                &GaussianProcessPriorLieLTIPose2::evaluateError,
+                                factor, p1, v1, std::placeholders::_1, v2, c1,
+                                nullptr, nullptr, nullptr, nullptr, nullptr)),
+                            p2, 1e-6);
+  expectH4 =
+      numericalDerivative11(std::function<Vector(const Vector3 &)>(std::bind(
+                                &GaussianProcessPriorLieLTIPose2::evaluateError,
+                                factor, p1, v1, p2, std::placeholders::_1, c1,
+                                nullptr, nullptr, nullptr, nullptr, nullptr)),
+                            v2, 1e-6);
+  expectH5 =
+      numericalDerivative11(std::function<Vector(const Vector3 &)>(std::bind(
+                                &GaussianProcessPriorLieLTIPose2::evaluateError,
+                                factor, p1, v1, p2, v2, std::placeholders::_1,
+                                nullptr, nullptr, nullptr, nullptr, nullptr)),
+                            c1, 1e-6);
   EXPECT(assert_equal(expect, actual, 1e-6));
   EXPECT(assert_equal(expectH1, actualH1, 1e-6));
   EXPECT(assert_equal(expectH2, actualH2, 1e-6));
@@ -119,8 +122,8 @@ TEST(GaussianProcessPriorLieLTIPose2, Factor) {
 //   graph.add(PriorFactor<Pose2>(Symbol('x', 2), pose2, model_prior));
 //   // graph.add(PriorFactor<Vector6>(Symbol('v', 1), v1, model_prior));
 //   graph.add(GaussianProcessPriorPose2(Symbol('x', 1), Symbol('v', 1),
-//                                       Symbol('x', 2), Symbol('v', 2), delta_t,
-//                                       Qc_model));
+//                                       Symbol('x', 2), Symbol('v', 2),
+//                                       delta_t, Qc_model));
 
 //   Values init_values;
 //   init_values.insert(Symbol('x', 1), pose1);

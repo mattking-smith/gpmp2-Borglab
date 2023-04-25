@@ -31,27 +31,26 @@ TEST(SE3PlanarFactorPose3nPose2, Factor) {
   Matrix expectH1, expectH2;
   Vector actual, expect;
 
-  
   p2D = Pose2(5, 7, 3);
   p3D = Pose3(Pose2(5, 7, 3));
 
   expect = (Vector(3) << 0, 0, 0).finished();
-  actual = factor.evaluateError(p3D, p2D, actualH1, actualH2);
+  actual = factor.evaluateError(p3D, p2D, &actualH1, &actualH2);
   expectH1 = numericalDerivative11(
-      std::function<Vector(const Pose3 &)>(std::bind(
-          &SE3PlanarFactorPose3nPose2::evaluateError, factor, std::placeholders::_1, p2D, boost::none, boost::none)),
+      std::function<Vector(const Pose3 &)>(
+          std::bind(&SE3PlanarFactorPose3nPose2::evaluateError, factor,
+                    std::placeholders::_1, p2D, nullptr, nullptr)),
       p3D, 1e-6);
   expectH2 = numericalDerivative11(
-      std::function<Vector(const Pose2 &)>(std::bind(
-          &SE3PlanarFactorPose3nPose2::evaluateError, factor, p3D, std::placeholders::_1, boost::none, boost::none)),
+      std::function<Vector(const Pose2 &)>(
+          std::bind(&SE3PlanarFactorPose3nPose2::evaluateError, factor, p3D,
+                    std::placeholders::_1, nullptr, nullptr)),
       p2D, 1e-6);
-  
+
   EXPECT(assert_equal(expect, actual, 1e-6));
   EXPECT(assert_equal(expectH1, actualH1, 1e-6));
   EXPECT(assert_equal(expectH2, actualH2, 1e-6));
 }
-
-
 
 /* ************************************************************************** */
 // TEST(GaussianProcessPriorPose2, Optimization) {
