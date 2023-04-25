@@ -72,7 +72,7 @@ class GaussianProcessPriorLinear : gtsam::NoiseModelFactor {
   void serialize() const;
 };
 
-#include <gpmp2/gp/GPPriorLTI.h>
+#include <gpmp2/dynamics/GPPriorLTI.h>
 // template<gtsam::Vector, gtsam::Vector, gtsam::Vector, gtsam::Vector>
 class GPPriorLTI : gtsam::NoiseModelFactor {
   GPPriorLTI(size_t key1, size_t key2, size_t key3, size_t key4, size_t key5,
@@ -85,7 +85,7 @@ class GPPriorLTI : gtsam::NoiseModelFactor {
   void serialize() const;
 };
 
-#include <gpmp2/gp/GPPriorLTILinear.h>
+#include <gpmp2/dynamics/GPPriorLTILinear.h>
 // template<gtsam::Vector, gtsam::Vector, gtsam::Vector, gtsam::Vector>
 class GPPriorLTILinear : gtsam::NoiseModelFactor {
   GPPriorLTILinear(size_t key1, size_t key2, size_t key3, size_t key4, size_t key5,
