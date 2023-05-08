@@ -470,6 +470,18 @@ class BiasOmegaFactor : gtsam::NoiseModelFactor {
   void serialize() const;
 };
 
+#include <gpmp2/dynamics/SE3Est2LTIDyn.h>
+// template<gtsam::Vector, gtsam::Vector, gtsam::Vector, gtsam::Vector>
+class SE3Est2LTIDyn : gtsam::NoiseModelFactor {
+  SE3Est2LTIDyn(size_t key1, size_t key2, size_t key3, size_t key4, size_t key5, size_t key6,double omega_z, double delta, const gtsam::noiseModel::Base* Qc_model);
+  // Vector evaluateError(Vector pose) const;
+  Vector evaluateError(const Pose3& pose1, const Vector& vel1,
+                       const gtsam::imuBias::ConstantBias& bias, const Pose2& pose2, 
+                       const Vector& vel2, const Vector& control);
+  // enabling serialization functionality
+  void serialize() const;
+};
+
 // dynamics factor Pose2
 #include <gpmp2/dynamics/VehicleDynamicsFactorPose2.h>
 

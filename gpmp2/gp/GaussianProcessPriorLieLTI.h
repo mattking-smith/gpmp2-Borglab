@@ -133,7 +133,7 @@ public:
     gtsam::Vector x2_m_x1 =
         (gtsam::Vector(2 * dof_) << (r - vel1 * delta_t_), (vel2 - vel1))
             .finished();
-
+  
     return x2_m_x1 - calcPhi(dof_, delta_t_) *
                          (gtsam::Matrix::Identity(2 * dof_, 2 * dof_) -
                           0.5 * delta_t_ * A) *

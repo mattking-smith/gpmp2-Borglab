@@ -8,7 +8,6 @@
 #pragma once
 
 #include <gtsam/base/Matrix.h>
-#include <gtsam/base/Vector.h>
 #include <gtsam/navigation/ImuBias.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
 
