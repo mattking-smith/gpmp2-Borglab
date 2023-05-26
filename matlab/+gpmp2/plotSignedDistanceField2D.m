@@ -21,7 +21,9 @@ grid_Y = origin_y : cell_size : grid_corner_y;
 
 h = imagesc(grid_X, grid_Y, field);
 
-colormap(hsv(64))
+cMap = interp1([0;1],[1 0 0; 0 1 0],linspace(0,1,256));
+
+colormap(cMap);
 
 % colormap(gray(64))
 % caxis([min(min(field)), epsilon_dist]);
