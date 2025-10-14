@@ -12,6 +12,8 @@ jobs:
       CTEST_PARALLEL_LEVEL: 2
       CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
       PYTHON_VERSION: ${{ matrix.python_version }}
+      VENV_PYTHON_EXECUTABLE: ${{ github.workspace }}/venv/bin/python
+      GTSAM_INSTALL_DIR: ${{ github.workspace }}/gtsam_install_prefix
 
     strategy:
       fail-fast: false
@@ -76,10 +78,12 @@ jobs:
 
       - name: Create python venv (MacOS)
         if: runner.os == 'macOS'
+        shell: bash
         run: |
-          python$PYTHON_VERSION -m venv venv
+          set -e
+          python${{ env.PYTHON_VERSION }} -m venv venv
           source venv/bin/activate
-          echo "PATH=$(pwd)/venv/bin:$PATH" >> $GITHUB_ENV
+          echo "${{ github.workspace }}/venv/bin" >> $GITHUB_PATH
           python -m pip install --upgrade pip
 
       - name: Python Dependencies
@@ -88,28 +92,36 @@ jobs:
           # Install dependencies for gtwrap
           python -m pip install -U setuptools numpy pyparsing pyyaml
 
-      - name: GTSAM (Linux)
+      - name: Install GTSAM (Linux)
         if: runner.os == 'Linux'
         run: |
-          # Install gtsam
-          git clone https://github.com/borglab/gtsam.git /home/runner/work/gtsam
-          cd /home/runner/work/gtsam
+          git clone https://github.com/borglab/gtsam.git /tmp/gtsam_source
+          cd /tmp/gtsam_source
           mkdir build && cd $_
           cmake -D GTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_BUILD_PYTHON=ON ..
-          sudo make -j$(nproc) install && sudo make python-install
+          sudo make -j$(nproc) install 
+          make python-install 
           sudo ldconfig
-          cd $GITHUB_WORKSPACE # go back to home directory
+          cd ${{ github.workspace }} 
+          sudo rm -rf /tmp/gtsam_source
 
-      - name: GTSAM (macOS)
+      - name: Install GTSAM (macOS)
         if: runner.os == 'macOS'
         run: |
-          # Install gtsam
-          git clone https://github.com/borglab/gtsam.git /Users/runner/work/gtsam
-          cd /Users/runner/work/gtsam
+          set -e 
+          git clone https://github.com/borglab/gtsam.git /tmp/gtsam_source
+          cd /tmp/gtsam_source
           mkdir build && cd $_
-          cmake -D GTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_BUILD_PYTHON=ON -DPYTHON_EXECUTABLE=$(pwd)/venv/bin/python ..
-          make -j$(sysctl -n hw.physicalcpu) install && make python-install
-          cd $GITHUB_WORKSPACE # go back to home directory
+          cmake -D GTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
+                -D GTSAM_BUILD_PYTHON=ON \
+                -D GTSAM_WITH_TBB=OFF \
+                -D PYTHON_EXECUTABLE=${{ env.VENV_PYTHON_EXECUTABLE }} \
+                -D CMAKE_INSTALL_PREFIX=${{ env.GTSAM_INSTALL_DIR }} \
+                ..
+          make -j$(sysctl -n hw.physicalcpu) install 
+          make -j$(sysctl -n hw.physicalcpu) python-install 
+          cd ${{ github.workspace }} # go back to home directory
+          rm -rf /tmp/gtsam_source
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -126,7 +138,12 @@ jobs:
       - name: Configure (macOS)
         if: runner.os == 'macOS'
         run: |
-          cmake -DGPMP2_BUILD_PYTHON_TOOLBOX=ON -DPYTHON_EXECUTABLE=$(pwd)/venv/bin/python ..
+          set -e
+          cmake -DGPMP2_BUILD_PYTHON_TOOLBOX=ON \
+                -DPYTHON_EXECUTABLE=$(pwd)/venv/bin/python \
+                -DGTSAM_DIR="${{ env.GTSAM_INSTALL_DIR }}/lib/cmake/GTSAM" \
+                -DCMAKE_PREFIX_PATH="${{ env.GTSAM_INSTALL_DIR }};$(brew --prefix)" \
+                ..
         working-directory: ./build
 
       - name: Build
