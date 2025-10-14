@@ -74,11 +74,19 @@ jobs:
           brew install boost
           brew tap borglab/core
 
+      - name: Create python venv (MacOS)
+        if: runner.os == 'macOS'
+        run: |
+          python$PYTHON_VERSION -m venv venv
+          source venv/bin/activate
+          echo "PATH=$(pwd)/venv/bin:$PATH" >> $GITHUB_ENV
+          python -m pip install --upgrade pip
+
       - name: Python Dependencies
         shell: bash
         run: |
           # Install dependencies for gtwrap
-          python$PYTHON_VERSION -m pip install -U setuptools numpy pyparsing pyyaml
+          python -m pip install -U setuptools numpy pyparsing pyyaml
 
       - name: GTSAM (Linux)
         if: runner.os == 'Linux'
@@ -99,7 +107,7 @@ jobs:
           git clone https://github.com/borglab/gtsam.git /Users/runner/work/gtsam
           cd /Users/runner/work/gtsam
           mkdir build && cd $_
-          cmake -D GTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_BUILD_PYTHON=ON -DPYTHON_EXECUTABLE=/usr/local/bin/python$PYTHON_VERSION ..
+          cmake -D GTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_BUILD_PYTHON=ON -DPYTHON_EXECUTABLE=$(pwd)/venv/bin/python ..
           make -j$(sysctl -n hw.physicalcpu) install && make python-install
           cd $GITHUB_WORKSPACE # go back to home directory
 
@@ -118,7 +126,7 @@ jobs:
       - name: Configure (macOS)
         if: runner.os == 'macOS'
         run: |
-          cmake -DGPMP2_BUILD_PYTHON_TOOLBOX=ON -DPYTHON_EXECUTABLE=/usr/local/bin/python$PYTHON_VERSION ..
+          cmake -DGPMP2_BUILD_PYTHON_TOOLBOX=ON -DPYTHON_EXECUTABLE=$(pwd)/venv/bin/python ..
         working-directory: ./build
 
       - name: Build
