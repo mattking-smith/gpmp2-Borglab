@@ -21,7 +21,7 @@ jobs:
         name: [ubuntu-22.04-gcc-9, ubuntu-22.04-clang-12, macos-14-xcode-15.4]
 
         build_type: [Debug, Release]
-        python_version: [3]
+        python_version: [3.11]
         include:
           - name: ubuntu-22.04-gcc-9
             os: ubuntu-22.04
@@ -32,13 +32,6 @@ jobs:
             os: ubuntu-22.04
             compiler: clang
             version: "12"
-
-          - name: ubuntu-22.04-clang-12
-            os: ubuntu-22.04
-            compiler: clang
-            version: "12"
-            build_type: Debug
-            python_version: "3"
 
           - name: macos-14-xcode-15.4
             os: macos-14
@@ -82,9 +75,10 @@ jobs:
           brew tap borglab/core
 
       - name: Python Dependencies
+        shell: bash
         run: |
           # Install dependencies for gtwrap
-          pip3 install -U setuptools numpy pyparsing pyyaml
+          python$PYTHON_VERSION -m pip install -U setuptools numpy pyparsing pyyaml
 
       - name: GTSAM (Linux)
         if: runner.os == 'Linux'
@@ -105,12 +99,12 @@ jobs:
           git clone https://github.com/borglab/gtsam.git /Users/runner/work/gtsam
           cd /Users/runner/work/gtsam
           mkdir build && cd $_
-          cmake -D GTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_BUILD_PYTHON=ON -DPYTHON_EXECUTABLE=/usr/local/bin/python3 ..
+          cmake -D GTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_BUILD_PYTHON=ON -DPYTHON_EXECUTABLE=/usr/local/bin/python$PYTHON_VERSION ..
           make -j$(sysctl -n hw.physicalcpu) install && make python-install
           cd $GITHUB_WORKSPACE # go back to home directory
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build Directory
         run: mkdir build
@@ -124,7 +118,7 @@ jobs:
       - name: Configure (macOS)
         if: runner.os == 'macOS'
         run: |
-          cmake -DGPMP2_BUILD_PYTHON_TOOLBOX=ON -DPYTHON_EXECUTABLE=/usr/local/bin/python3 ..
+          cmake -DGPMP2_BUILD_PYTHON_TOOLBOX=ON -DPYTHON_EXECUTABLE=/usr/local/bin/python$PYTHON_VERSION ..
         working-directory: ./build
 
       - name: Build
