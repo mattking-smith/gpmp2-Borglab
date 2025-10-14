@@ -21,7 +21,7 @@ jobs:
         name: [ubuntu-22.04-gcc-9, ubuntu-22.04-clang-12, macos-14-xcode-15.4]
 
         build_type: [Debug, Release]
-        python_version: [3.11]
+        python_version: [3]
         include:
           - name: ubuntu-22.04-gcc-9
             os: ubuntu-22.04
