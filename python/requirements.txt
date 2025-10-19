@@ -1,2 +1,4 @@
-numpy
+numpy>=1.11.0
 gtsam
+pyparsing>=2.4.2
+pybind11-stubgen>=2.5.1
