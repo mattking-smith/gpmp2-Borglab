@@ -79,7 +79,7 @@ jobs:
                 -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF ..
           sudo make -j4 install
           sudo ldconfig
-          cd ${{ github.workspace }} 
+          cd ${{ github.workspace }}
           rm -rf /tmp/gtsam_source
 
       - name: Checkout
@@ -98,5 +98,7 @@ jobs:
         working-directory: ./build
 
       - name: Test
-        run: make -j$(nproc) check
+        run: |
+          set -e
+          ctest -j$(nproc) -rerun-failed --output-on-failure
         working-directory: ./build
