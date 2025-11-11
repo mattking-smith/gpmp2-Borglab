@@ -100,5 +100,6 @@ jobs:
       - name: Test
         run: |
           set -e
+          make -j$(nproc) check
           ctest -j$(nproc) -V
         working-directory: ./build
