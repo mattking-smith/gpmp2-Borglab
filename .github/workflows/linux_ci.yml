@@ -100,5 +100,5 @@ jobs:
       - name: Test
         run: |
           set -e
-          ctest -j$(nproc) -rerun-failed --output-on-failure
+          ctest -j$(nproc) -V
         working-directory: ./build
