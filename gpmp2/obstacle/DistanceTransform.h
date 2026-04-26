@@ -16,7 +16,7 @@
 ///        Felzenszwalb & Huttenlocher Algorithm: https://cs.brown.edu/people/pfelzens/papers/dt-final.pdf
 namespace gpmp2::dt
 {
-    /// @brief Rounds matrix to specificed decimation
+    /// @brief Rounds matrix to specified decimation
     /// @param[in] mat_
     /// @param[in] decimals_
     /// @return Rounded to decimation matrix
