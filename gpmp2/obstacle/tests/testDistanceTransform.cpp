@@ -202,7 +202,6 @@ TEST(DistanceTransform3D, empty_map)
 
     auto const sdf = gpmp2::dt::computeSignedDistanceField(vol, 1.0);
 
-    // depends on your convention — often large positive or INF
     for (int z = 0; z < 5; z++)
         EXPECT(sdf[z].array().isFinite().all());
 }
