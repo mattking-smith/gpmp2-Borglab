@@ -53,35 +53,74 @@ Eigen::VectorXd computeEuclideanDistanceTransform(Eigen::VectorXd const & func_)
     return distanceTransform;
 }
 
-gtsam::Matrix computeEDTFromBinary(gtsam::Matrix const & binaryMap_)
+std::vector<gtsam::Matrix> computeEDTFromBinary(std::vector<gtsam::Matrix> const & binaryVolume)
 {
-    auto const rows = binaryMap_.rows();
-    auto const cols = binaryMap_.cols();
-
-    // Convert binary map to function map: 0 → free space, 1 → obstacle
-    gtsam::Matrix funcMap_(rows,cols);
-    funcMap_ = binaryMap_.unaryExpr([](double x)
+    if(binaryVolume.empty())
     {
-        return x == 1.0 ? 0.0 : std::numeric_limits<double>::max();
-    });
-
-    gtsam::Matrix edt(rows, cols);
-
-    // --- Row-wise pass ---
-    for(size_t r = 0; r < rows; ++r)
-    {
-        Eigen::VectorXd const f = funcMap_.row(r).transpose();
-        edt.row(r)  = computeEuclideanDistanceTransform(f);
+        std::cerr << "Cannot compute edt of binaryVolume which is empty!\n";
+        return {};
     }
 
-    // --- Pass in y-direction (rows) ---
-    for(size_t c = 0; c< cols; ++c)
+    size_t const Z = binaryVolume.size();
+    size_t const Y = binaryVolume[0].rows();
+    size_t const X = binaryVolume[0].cols();
+
+    // --- Step 1: build function map ---
+    std::vector<gtsam::Matrix> edt(Z, gtsam::Matrix(Y, X));
+
+    for (size_t z = 0; z < Z; ++z)
     {
-        Eigen::VectorXd const f = edt.col(c);
-        edt.col(c)  = computeEuclideanDistanceTransform(f);
+        edt[z] = binaryVolume[z].unaryExpr([](double const x_)
+        {
+            return x_ == 1.0 ? 0.0 : std::numeric_limits<double>::max();
+        });
     }
+
+    // --- Step 2: X pass (rows) ---
+    for (size_t z = 0; z < Z; ++z)
+    {
+        for (size_t y = 0; y < Y; ++y)
+        {
+            Eigen::VectorXd f = edt[z].row(y).transpose();
+            Eigen::VectorXd d = computeEuclideanDistanceTransform(f);
+            edt[z].row(y) = d.transpose();
+        }
+    }
+
+    // --- Step 3: Y pass (cols) ---
+    for (size_t z = 0; z < Z; ++z)
+    {
+        for (size_t x = 0; x < X; ++x)
+        {
+            Eigen::VectorXd f = edt[z].col(x);
+            Eigen::VectorXd d = computeEuclideanDistanceTransform(f);
+            edt[z].col(x) = d;
+        }
+    }
+
+    if(Z < 2)
+        // Only a single matrix nothing left to compute
+        return edt;
+
+    // --- Step 4: Z pass ---
+    for (size_t y = 0; y < Y; ++y)
+    {
+        for (size_t x = 0; x < X; ++x)
+        {
+            Eigen::VectorXd f(Z);
+
+            for (size_t z = 0; z < Z; ++z)
+                f[z] = edt[z](y, x);
+
+            Eigen::VectorXd d = computeEuclideanDistanceTransform(f);
+
+            for (size_t z = 0; z < Z; ++z)
+                edt[z](y, x) = d[z];
+        }
+    }
+
     return edt;
-};
+}
 
 } // namespace anonymous
 
@@ -93,12 +132,36 @@ gtsam::Matrix gpmp2::dt::roundMatrix(gtsam::Matrix const & mat_, int const decim
 
 gtsam::Matrix gpmp2::dt::computeSignedDistanceField(gtsam::Matrix const & binaryMap_, double const cellSize_)
 {
-    gtsam::Matrix const distToObject = computeEDTFromBinary(binaryMap_);
-    gtsam::Matrix const distToObjectSqrt = distToObject.array().sqrt();
+    return computeSignedDistanceField(std::vector<gtsam::Matrix>{binaryMap_}, cellSize_).at(0);
+}
 
-    gtsam::Matrix const invBinaryMap = gtsam::Matrix::Ones(binaryMap_.rows(), binaryMap_.cols()) - binaryMap_;
-    gtsam::Matrix const distToBackground = computeEDTFromBinary(invBinaryMap);
-    gtsam::Matrix const distToBackgroundSqrt = distToBackground.array().sqrt();
+std::vector<gtsam::Matrix> gpmp2::dt::computeSignedDistanceField(
+    std::vector<gtsam::Matrix> const & binaryVolume_,
+    double cellSize_)
+{
+    // distance to object (inside obstacles)
+    auto distObj = computeEDTFromBinary(binaryVolume_);
 
-    return (distToObjectSqrt - distToBackgroundSqrt) * cellSize_;
+    // build inverse
+    std::vector<gtsam::Matrix> inv(binaryVolume_.size());
+    for (size_t z = 0; z < binaryVolume_.size(); ++z)
+    {
+        inv[z] = gtsam::Matrix::Ones(binaryVolume_[z].rows(),
+                                    binaryVolume_[z].cols()) - binaryVolume_[z];
+    }
+
+    // distance to background
+    auto distBg = computeEDTFromBinary(inv);
+
+    // combine → signed distance
+    std::vector<gtsam::Matrix> sdf(binaryVolume_.size());
+
+    for (size_t z = 0; z < binaryVolume_.size(); ++z)
+    {
+        sdf[z] =
+            (distObj[z].array().sqrt() -
+             distBg[z].array().sqrt()) * cellSize_;
+    }
+
+    return sdf;
 }

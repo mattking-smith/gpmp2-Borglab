@@ -22,6 +22,8 @@ namespace gpmp2::dt
     /// @return Rounded to decimation matrix
     gtsam::Matrix roundMatrix(gtsam::Matrix const & mat_, int const decimals_);
 
+    std::vector<gtsam::Matrix> computeSignedDistanceField(std::vector<gtsam::Matrix> const & binaryMap_, double const cellSize_);
+
     /// @brief Compute the signed distance field of an obstacle-map
     /// @param binaryMap_ (Obstacle map where 1 = obstacle and 0 = free space)
     /// @param cellSize_ resolution of map
