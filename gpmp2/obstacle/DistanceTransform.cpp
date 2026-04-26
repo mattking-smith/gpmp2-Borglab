@@ -142,9 +142,11 @@ std::vector<gtsam::Matrix> gpmp2::dt::computeSignedDistanceField(
     // distance to object (inside obstacles)
     auto distObj = computeEDTFromBinary(binaryVolume_);
 
+    size_t const volSize = binaryVolume_.size();
+
     // build inverse
-    std::vector<gtsam::Matrix> inv(binaryVolume_.size());
-    for (size_t z = 0; z < binaryVolume_.size(); ++z)
+    std::vector<gtsam::Matrix> inv(volSize);
+    for (size_t z = 0; z < volSize; ++z)
     {
         inv[z] = gtsam::Matrix::Ones(binaryVolume_[z].rows(),
                                     binaryVolume_[z].cols()) - binaryVolume_[z];
@@ -154,9 +156,9 @@ std::vector<gtsam::Matrix> gpmp2::dt::computeSignedDistanceField(
     auto distBg = computeEDTFromBinary(inv);
 
     // combine → signed distance
-    std::vector<gtsam::Matrix> sdf(binaryVolume_.size());
+    std::vector<gtsam::Matrix> sdf(volSize);
 
-    for (size_t z = 0; z < binaryVolume_.size(); ++z)
+    for (size_t z = 0; z < volSize; ++z)
     {
         sdf[z] =
             (distObj[z].array().sqrt() -
