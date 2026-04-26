@@ -85,6 +85,12 @@ gtsam::Matrix computeEDTFromBinary(gtsam::Matrix const & binaryMap_)
 
 } // namespace anonymous
 
+gtsam::Matrix gpmp2::dt::roundMatrix(gtsam::Matrix const & mat_, int const decimals_)
+{
+    double scale = std::pow(10.0, decimals_);
+    return (mat_ * scale).array().round() / scale;
+}
+
 gtsam::Matrix gpmp2::dt::computeSignedDistanceField(gtsam::Matrix const & binaryMap_, double const cellSize_)
 {
     gtsam::Matrix const distToObject = computeEDTFromBinary(binaryMap_);

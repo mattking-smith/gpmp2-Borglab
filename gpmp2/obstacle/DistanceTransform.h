@@ -16,6 +16,12 @@
 ///        Felzenszwalb & Huttenlocher Algorithm: https://cs.brown.edu/people/pfelzens/papers/dt-final.pdf
 namespace gpmp2::dt
 {
+    /// @brief Rounds matrix to specificed decimation
+    /// @param[in] mat_
+    /// @param[in] decimals_
+    /// @return Rounded to decimation matrix
+    gtsam::Matrix roundMatrix(gtsam::Matrix const & mat_, int const decimals_);
+
     /// @brief Compute the signed distance field of an obstacle-map
     /// @param binaryMap_ (Obstacle map where 1 = obstacle and 0 = free space)
     /// @param cellSize_ resolution of map
