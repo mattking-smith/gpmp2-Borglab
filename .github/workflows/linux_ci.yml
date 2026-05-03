@@ -48,24 +48,25 @@ jobs:
       # -------------------------
       - name: Build GTSAM
         run: |
-          set -e
+          .github/scripts/unix.sh -t
+          # set -e
 
-          cd gtsam
-          mkdir build && cd build
+          # cd gtsam
+          # mkdir build && cd build
 
-          cd /tmp/gtsam
-          mkdir build && cd build
+          # cd /tmp/gtsam
+          # mkdir build && cd build
 
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
-            -DGTSAM_BUILD_UNSTABLE=OFF \
-            -DGTSAM_WITH_TBB=OFF \
-            -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
-            -DGTSAM_BUILD_TESTS=OFF
+          # cmake .. \
+          #   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+          #   -DGTSAM_BUILD_UNSTABLE=OFF \
+          #   -DGTSAM_WITH_TBB=OFF \
+          #   -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
+          #   -DGTSAM_BUILD_TESTS=OFF
 
-          make -j$(nproc)
-          make install
-          ldconfig
+          # make -j$(nproc)
+          # make install
+          # ldconfig
 
       # -------------------------
       # Build GPMP2
