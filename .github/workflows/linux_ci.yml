@@ -43,18 +43,6 @@ jobs:
       - name: Checkout GPMP2
         uses: actions/checkout@v4
 
-      - name: Install git (container is minimal)
-        run: |
-          set -e
-
-          apt-get clean
-          rm -rf /var/lib/apt/lists/*
-
-          apt-get update -o Acquire::Retries=3 -o Acquire::http::Timeout=30
-
-          apt-get install -y git ca-certificates
-
-
       # -------------------------
       # Build and install GTSAM (CI-consistent)
       # -------------------------
