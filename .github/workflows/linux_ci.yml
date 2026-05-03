@@ -50,8 +50,8 @@ jobs:
         run: |
           set -e
 
-          # shallow clone for speed
-          git clone --depth 1 https://github.com/borglab/gtsam.git /tmp/gtsam
+          cd gtsam
+          mkdir build && cd build
 
           cd /tmp/gtsam
           mkdir build && cd build
