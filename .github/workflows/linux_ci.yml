@@ -37,16 +37,30 @@ jobs:
             version: "14"
 
     steps:
+      # -------------------------
+      # Checkout GPMP2
+      # -------------------------
       - name: Checkout GPMP2
         uses: actions/checkout@v4
 
       # -------------------------
-      # Build and install GTSAM
+      # Install minimal missing tools
+      # -------------------------
+      - name: Install git (container is minimal)
+        run: |
+          apt-get update
+          apt-get install -y git ca-certificates
+
+      # -------------------------
+      # Build and install GTSAM (CI-consistent)
       # -------------------------
       - name: Build GTSAM
         run: |
           set -e
-          git clone https://github.com/borglab/gtsam.git /tmp/gtsam
+
+          # shallow clone for speed
+          git clone --depth 1 https://github.com/borglab/gtsam.git /tmp/gtsam
+
           cd /tmp/gtsam
           mkdir build && cd build
 
