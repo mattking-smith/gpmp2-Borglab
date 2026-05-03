@@ -48,7 +48,9 @@ jobs:
       # -------------------------
       - name: Build GTSAM
         run: |
-          .github/scripts/unix.sh -t
+          set -e
+          cd $GITHUB_WORKSPACE
+          ./.github/scripts/unix.sh -t
           # set -e
 
           # cd gtsam
