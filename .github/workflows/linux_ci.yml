@@ -79,7 +79,7 @@ jobs:
                 -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF ..
           sudo make -j4 install
           sudo ldconfig
-          cd ${{ github.workspace }} 
+          cd ${{ github.workspace }}
           rm -rf /tmp/gtsam_source
 
       - name: Checkout
