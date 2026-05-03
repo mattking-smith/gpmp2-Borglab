@@ -1,42 +1,37 @@
 name: Linux CI
 
-on:
-  pull_request:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+on: [pull_request]
 
 jobs:
   build:
     name: ${{ matrix.name }} ${{ matrix.build_type }}
-
     runs-on: ${{ matrix.os }}
 
     container:
       image: borglab/gtsam-ci:${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.version }}
-      env:
-        CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
-      volumes:
-        - ${{ github.workspace }}:/gtsam
+
+    env:
+      CTEST_OUTPUT_ON_FAILURE: ON
+      CTEST_PARALLEL_LEVEL: 2
+      CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
 
     strategy:
       fail-fast: true
       matrix:
-        name: [ubuntu-22.04-gcc-11, ubuntu-24.04-gcc-14]
+        name: [ubuntu-24.04-gcc-14, ubuntu-24.04-clang-16]
 
         build_type: [Debug, Release]
 
         include:
-          - name: ubuntu-22.04-gcc-11
-            os: ubuntu-22.04
-            compiler: gcc
-            version: "11"
-
           - name: ubuntu-24.04-gcc-14
             os: ubuntu-24.04
             compiler: gcc
             version: "14"
+
+          - name: ubuntu-24.04-clang-16
+            os: ubuntu-24.04
+            compiler: clang
+            version: "16"
 
     steps:
       # -------------------------
@@ -46,49 +41,48 @@ jobs:
         uses: actions/checkout@v4
 
       # -------------------------
-      # Build and install GTSAM (CI-consistent)
+      # Build GTSAM (OFFICIAL CI WAY)
       # -------------------------
       - name: Build GTSAM
         run: |
-          # set -e
-          # cd $GITHUB_WORKSPACE
-          .github/scripts/unix.sh -t
-          # set -e
+          set -e
 
-          # cd gtsam
-          # mkdir build && cd build
+          git clone --depth 1 https://github.com/borglab/gtsam.git /tmp/gtsam_source
+          cd /tmp/gtsam_source
 
-          # cd /tmp/gtsam
-          # mkdir build && cd build
-
-          # cmake .. \
-          #   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
-          #   -DGTSAM_BUILD_UNSTABLE=OFF \
-          #   -DGTSAM_WITH_TBB=OFF \
-          #   -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
-          #   -DGTSAM_BUILD_TESTS=OFF
-
-          # make -j$(nproc)
-          # make install
-          # ldconfig
-
-      # -------------------------
-      # Build GPMP2
-      # -------------------------
-      - name: Build GPMP2
-        run: |
           mkdir build && cd build
 
           cmake .. \
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
-            -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF
+            -DGTSAM_ALLOW_DEPRECATED_SINCE_V43=OFF \
+            -DGTSAM_WITH_TBB=OFF \
+            -DGTSAM_BUILD_UNSTABLE=OFF \
+            -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
+            -DGTSAM_BUILD_TESTS=OFF
 
           make -j$(nproc)
+          make install
+          ldconfig
 
       # -------------------------
-      # Run tests
+      # Build GPMP2
       # -------------------------
-      - name: Test
+      - name: Configure GPMP2
         run: |
-          cd build
+          mkdir build
+
+      - name: Configure
+        working-directory: ./build
+        run: |
+          cmake .. \
+            -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF
+
+      - name: Build
+        working-directory: ./build
+        run: |
+          make -j$(nproc)
+
+      - name: Test
+        working-directory: ./build
+        run: |
           ctest --output-on-failure
